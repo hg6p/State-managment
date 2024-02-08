@@ -14,6 +14,82 @@ export const counterReducer = (state = 0, action) => {
       return state;
   }
 };
+// Action Types
+export const FETCH_DATA_REQUEST = "FETCH_DATA_REQUEST";
+export const FETCH_DATA_SUCCESS = "FETCH_DATA_SUCCESS";
+export const FETCH_DATA_FAILURE = "FETCH_DATA_FAILURE";
+//#region  async
+export const asyncReducer = (
+  state = { data: null, loading: false, error: null },
+  action
+) => {
+  switch (action.type) {
+    case FETCH_DATA_REQUEST:
+      return { ...state, loading: true, error: null };
+
+    case FETCH_DATA_SUCCESS:
+      return { ...state, loading: false, data: action.payload, error: null };
+
+    case FETCH_DATA_FAILURE:
+      return { ...state, loading: false, error: action.payload };
+
+    default:
+      return state;
+  }
+};
+
+// Action Creators
+export const fetchDataRequest = () => ({ type: FETCH_DATA_REQUEST });
+export const fetchDataSuccess = (data) => ({
+  type: FETCH_DATA_SUCCESS,
+  payload: data,
+});
+export const fetchDataFailure = (error) => ({
+  type: FETCH_DATA_FAILURE,
+  payload: error,
+});
+
+// Async Action Creator
+export const fetchData = () => async (dispatch) => {
+  dispatch(fetchDataRequest());
+
+  try {
+    const response = await fetch(
+      "https://pokeapi.co/api/v2/pokemon?limit=10&offset=0"
+    );
+    const data = await response.json();
+    dispatch(fetchDataSuccess(data));
+  } catch (error) {
+    dispatch(fetchDataFailure(error.message));
+  }
+};
+
+export const asyncMiddleware = () => (next) => async (action) => {
+  if (typeof action === "function") {
+    return action(next);
+  }
+
+  const { type, ...rest } = action;
+
+  if (type && type.endsWith("_REQUEST")) {
+    // Handle request action
+    return next(action);
+  }
+
+  if (type && type.endsWith("_SUCCESS")) {
+    // Handle success action
+    return next(action);
+  }
+
+  if (type && type.endsWith("_FAILURE")) {
+    // Handle failure action
+    return next(action);
+  }
+
+  return next(action);
+};
+
+//#endregion async
 
 export const customMiddleware = (store) => (next) => (action) => {
   console.log("Middleware Action:", action);
@@ -37,6 +113,10 @@ export const createStore = (reducer, preloadedState, enhancer) => {
   const getState = () => state;
 
   const dispatch = (action) => {
+    if (typeof action === "function") {
+      return action(dispatch, getState);
+    }
+
     state = reducer(state, action);
     listeners.forEach((listener) => listener());
   };

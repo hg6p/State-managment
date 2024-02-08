@@ -1,8 +1,8 @@
+// App.js
+import React from "react";
 import { StateProvider, connect } from "./connect";
 import { fetchData } from "./reduxStore";
-import React from "react";
 
-// Counter Component
 const CounterComponent = ({
   counter,
   handleIncrement,
@@ -19,39 +19,20 @@ const CounterComponent = ({
   );
 };
 
+const mapStateToProps = (state) => ({
+  counter: state?.counter,
+});
+
+const mapDispatchToProps = (dispatch) => ({
+  handleIncrement: () => dispatch({ type: "INCREMENT" }),
+  handleDecrement: () => dispatch({ type: "DECREMENT" }),
+  handleAsync: () => dispatch(fetchData()),
+});
+
 const ConnectedCounterComponent = connect(
-  (state) => ({
-    counter: state?.counter,
-  }),
-  (dispatch) => ({
-    handleIncrement: () => dispatch({ type: "INCREMENT" }),
-    handleDecrement: () => dispatch({ type: "DECREMENT" }),
-    handleAsync: () => dispatch(fetchData()), // Correct usage
-  })
+  mapStateToProps,
+  mapDispatchToProps
 )(CounterComponent);
-// ReactStateComponent
-const ReactStateComponent = () => {
-  const [add, setAdd] = React.useState(1);
-
-  return (
-    <div>
-      {add}
-      <button onClick={() => setAdd((n) => n + 1)}>Adds up</button>
-    </div>
-  );
-};
-
-// ReactStateComponentParent
-const ReactStateComponentParent = () => {
-  return (
-    <div>
-      ReactStateComponentParent:
-      <ReactStateComponent />
-    </div>
-  );
-};
-
-// ReactAsyncTest
 const ReactAsyncTest = ({ loading, error, data }) => {
   if (loading) {
     return <div>Loading...</div>;
@@ -82,15 +63,13 @@ const ConnectedReactAsyncTest = connect((state) => ({
   data: state?.asyncData.data,
 }))(ReactAsyncTest);
 
-// App Component
-const App = () => {
+export default function AsyncApp() {
   return (
-    <StateProvider>
-      <ConnectedCounterComponent />
-      <ReactStateComponentParent />
-      <ConnectedReactAsyncTest />
-    </StateProvider>
+    <div>
+      <StateProvider>
+        <ConnectedCounterComponent />
+        <ConnectedReactAsyncTest />
+      </StateProvider>
+    </div>
   );
-};
-
-export default App;
+}
