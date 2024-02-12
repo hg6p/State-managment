@@ -1,5 +1,6 @@
 import { Component, ReactElement } from "react";
 
+/* Something like mobx with class react render function */
 const reactionsMap = {};
 let currentlyRenderingComponent;
 
